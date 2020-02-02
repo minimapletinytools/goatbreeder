@@ -1,0 +1,3 @@
+[submodule "animalclub"]
+	path = animalclub
+	url = git@github.com:pdlla/animalclub.git
