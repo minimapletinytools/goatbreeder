@@ -1,14 +1,16 @@
-all: animalclub hello_cargo
+all: animalclub hello_cargo ccall
 
 animalclub:
 	$(MAKE) -C animalclub
 
 copyanimalclubdeps: animalclub
-	cp animalclub/csrc/animalclub.h ./
-	cp animalclub/ctest/libanimalclub.* ./
+	cp animalclub/ctest/libanimalclub.* ./practice_rust_project/ccall
 
-hello_cargo: copyanimalclubdeps
+hello_cargo:
 	$(MAKE) -C practice_rust_project
+
+ccall: copyanimalclubdeps
+	cd practice_rust_project/ccall && cargo build
 
 clean:
 	cd animalclub && make clean
