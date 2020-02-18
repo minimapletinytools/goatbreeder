@@ -12,7 +12,10 @@ hello_cargo:
 ccall: copyanimalclubdeps
 	cd practice_rust_project/ccall && cargo build
 
+ccall-run: ccall
+	cd practice_rust_project/ccall && cargo run
+
 clean:
 	cd animalclub && make clean
 
-.PHONY: animalclub copyanimalclubdeps hello_cargo clean
+.PHONY: animalclub copyanimalclubdeps hello_cargo ccall clean
