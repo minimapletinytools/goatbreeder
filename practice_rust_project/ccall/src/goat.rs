@@ -31,21 +31,22 @@ struct MeshInternal {
     , face_count: u32
 }
 
-struct Mesh<'a> {
-    mesh: &'a const MeshInternal
+pub struct Mesh<'a> {
+    mesh: &'a MeshInternal
 }
 
 impl<'a> Mesh<'a> {
     //(&a' [f32], &a' [u32]) {
-    pub fn mesh(&self) -> &'a [f32] {
-        let r1 = unsafe { from_raw_parts(self.mesh.vertices, self.vertex_count) };
-        let r2 = unsafe { from_raw_parts(self.mesh.vertices, self.vertex_count) };
-        r1
+    pub fn buffers(&self) -> (&'a [f32], &'a [u32]) {
+        let r1 = unsafe { from_raw_parts(self.mesh.vertices as *const f32, self.mesh.vertex_count as usize) };
+        let r2 = unsafe { from_raw_parts(self.mesh.faces as *const u32, self.mesh.face_count as usize) };
+        return (r1, r2);
     }
 }
 impl<'a> Drop for Mesh<'a> {
     fn drop(&mut self) {
-        unsafe { free_goat_mesh(self.mesh); }
+        let raw = self.mesh as *const MeshInternal;
+        unsafe { free_goat_mesh(raw); }
     }
 }
 
@@ -58,11 +59,11 @@ impl Goat {
         let hsptr: *const c_void = unsafe { random_goat() };
         Goat { hsptr }
     }
-    pub fn mesh<'a>(self: Goat) -> Mesh<'a> {
-        let mesh = unsafe { goat_mesh(self.hsptr) };
-        Mesh { mesh }
+    pub fn mesh<'a>(&self) -> Mesh<'a> {
+        let mesh = unsafe { &*goat_mesh(self.hsptr) };
+        Mesh { mesh: &mesh }
     }
-    pub fn dump(self: Goat) {
+    pub fn dump(&self) {
         unsafe { dump_goat(self.hsptr); }
     }
 }
@@ -70,17 +71,5 @@ impl Goat {
 impl Drop for Goat {
     fn drop(&mut self) {
         unsafe { free_goat(self.hsptr); }
-    }
-}
-
-
-fn main() {
-    println!("Hello, world!aonethuonateh");
-    unsafe {
-        my_init();
-        let g = random_goat();
-        dump_goat(g);
-        free_goat(g);
-        my_exit();
     }
 }
