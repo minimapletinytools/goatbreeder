@@ -2,3 +2,5 @@
 # animal club stuff
 animalclub.h
 libanimalclub.*
+**/target
+.#Cargo.toml
