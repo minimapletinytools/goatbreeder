@@ -4,18 +4,15 @@ animalclub:
 	$(MAKE) -C animalclub
 
 copyanimalclubdeps: animalclub
-	cp animalclub/ctest/libanimalclub.* ./practice_rust_project/ccall
-
-hello_cargo:
-	$(MAKE) -C practice_rust_project
+	cp animalclub/ctest/libanimalclub.* ./src/ccall
 
 ccall: copyanimalclubdeps
-	cd practice_rust_project/ccall && cargo build
+	cd src/ccall && cargo build
 
 ccall-run: ccall
-	cd practice_rust_project/ccall && cargo run
+	cd src/ccall && cargo run
 
 clean:
 	cd animalclub && make clean
 
-.PHONY: animalclub copyanimalclubdeps hello_cargo ccall clean
+.PHONY: animalclub copyanimalclubdeps ccall ccall-run clean
