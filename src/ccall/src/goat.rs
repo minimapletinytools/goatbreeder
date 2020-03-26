@@ -36,7 +36,6 @@ pub struct Mesh<'a> {
 }
 
 impl<'a> Mesh<'a> {
-    //(&a' [f32], &a' [u32]) {
     pub fn buffers(&self) -> (&'a [f32], &'a [u32]) {
         let r1 = unsafe { from_raw_parts(self.mesh.vertices as *const f32, self.mesh.vertex_count as usize) };
         let r2 = unsafe { from_raw_parts(self.mesh.faces as *const u32, self.mesh.face_count as usize) };
@@ -72,4 +71,9 @@ impl Drop for Goat {
     fn drop(&mut self) {
         unsafe { free_goat(self.hsptr); }
     }
+}
+
+pub fn breed(g1: &Goat, g2: &Goat) -> Goat {
+    let hsptr: *const c_void = unsafe { breed_goat(g1.hsptr, g2.hsptr) };
+    Goat { hsptr }
 }
