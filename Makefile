@@ -1,4 +1,4 @@
-all: animalclub hello_cargo ccall
+all: animalclub ccall
 
 animalclub:
 	$(MAKE) -C animalclub
@@ -9,7 +9,7 @@ copyanimalclubdeps: animalclub
 ccall: copyanimalclubdeps
 	cd src/ccall && cargo build
 
-ccall-run: ccall
+run: ccall
 	cd src/ccall && cargo run
 
 clean:
