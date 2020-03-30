@@ -6,8 +6,19 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+# The default set of optional packages. Most people will want to use these
+# packages, but they are strictly optional.
+default = ["mac_render"]
+mac_render = ["amethyst/metal"]
+
 [dependencies]
 libc = "0.2.0"
+amethyst_gltf = "0.10.0"
 
 [profile.dev]
 rpath = true
+
+[dependencies.amethyst]
+version = "0.15"
+features = ["metal"]

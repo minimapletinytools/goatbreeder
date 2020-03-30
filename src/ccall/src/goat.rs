@@ -36,8 +36,8 @@ pub struct Mesh<'a> {
 }
 
 impl<'a> Mesh<'a> {
-    pub fn buffers(&self) -> (&'a [f32], &'a [u32]) {
-        let r1 = unsafe { from_raw_parts(self.mesh.vertices as *const f32, self.mesh.vertex_count as usize) };
+    pub fn buffers(&self) -> (&'a [u8], &'a [u32]) {
+        let r1 = unsafe { from_raw_parts(self.mesh.vertices as *const u8, self.mesh.vertex_count as usize) };
         let r2 = unsafe { from_raw_parts(self.mesh.faces as *const u32, self.mesh.face_count as usize) };
         return (r1, r2);
     }
