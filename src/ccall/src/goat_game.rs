@@ -47,7 +47,6 @@ fn initialize_model(world: &mut World) {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
         let mesh_storage = world.read_resource();
-        rs_goat_init();
         println!("generating goat");
         let g = Goat::random();
         println!("printing before mesh");
