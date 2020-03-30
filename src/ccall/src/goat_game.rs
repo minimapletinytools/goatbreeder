@@ -1,11 +1,13 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::{
-    assets::{Handle, Format, Loader, ProgressCounter},
+    assets::{Handle, Loader, ProgressCounter},
     core::{math::Vector3, Transform},
     prelude::*,
     renderer::{
-        formats::mesh::ObjFormat,
         camera::{Camera},
+        rendy::{
+            mesh::{MeshBuilder, Position}
+        },
         types::{Mesh, MeshData},
     },
 };
@@ -30,7 +32,7 @@ impl SimpleState for GoatGame {
 
 fn initialise_camera(world: &mut World) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(0.0, 12.0, -5.0);
+    transform.set_translation_xyz(0.0, 0.0, 0.0);
 
     world
         .create_entity()
@@ -49,10 +51,19 @@ fn initialize_model(world: &mut World) {
         let g = Goat::random();
         println!("printing before mesh");
         let m = g.mesh();
-        let (v, _f) = m.buffers();
-        println!("printing before vertices {:?}", v.to_vec());
-        let mesh_data : MeshData = ObjFormat.import_simple(v.to_vec()).unwrap();
-        rs_goat_exit();
+        let (v, f) = m.buffers();
+
+        let pos_slice = v
+            .to_vec()
+            .chunks(3)
+            .into_iter()
+            .map(|x| Position([x[0] as f32, x[1] as f32, x[2] as f32]))
+            .collect::<Vec<_>>();
+
+        let mesh_data : MeshData = MeshBuilder::new()
+        .with_vertices(pos_slice)
+        .with_indices(f.to_vec())
+        .into();
 
         loader.load_from_data(
             mesh_data,
@@ -63,7 +74,7 @@ fn initialize_model(world: &mut World) {
 
     let mut transform = Transform::default();
     transform.set_translation_xyz(0.0, 0.0, 0.0);
-    transform.set_scale(Vector3::new(2.0, 2.0, 2.0));
+    transform.set_scale(Vector3::new(12.0, 12.0, 12.0));
 
     world
         .create_entity()
