@@ -1,10 +1,10 @@
-extern crate libc;
 extern crate amethyst;
+extern crate libc;
 
 mod goat_game;
 
 mod goat;
-use goat::{*};
+use goat::*;
 
 use crate::goat_game::GoatGame;
 use amethyst::{
@@ -29,7 +29,7 @@ fn main() -> amethyst::Result<()> {
 
         println!("printing mesh");
         let m = g.mesh();
-        let (v,f) = m.buffers();
+        let (v, f) = m.buffers();
 
         // print buffers ourselves
         println!("{:?}", v);

@@ -4,15 +4,13 @@ use amethyst::{
     core::{math::Vector3, Transform},
     prelude::*,
     renderer::{
-        camera::{Camera},
-        rendy::{
-            mesh::{MeshBuilder, Position}
-        },
+        camera::Camera,
+        rendy::mesh::{MeshBuilder, Position},
         types::{Mesh, MeshData},
     },
 };
 
-use crate::goat::{*};
+use crate::goat::*;
 
 pub struct GoatGame;
 pub struct Model {}
@@ -42,7 +40,7 @@ fn initialise_camera(world: &mut World) {
 }
 
 fn initialize_model(world: &mut World) {
-    let asset : Handle<Mesh> = {
+    let asset: Handle<Mesh> = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
         let mesh_storage = world.read_resource();
@@ -60,25 +58,17 @@ fn initialize_model(world: &mut World) {
             .map(|x| Position([x[0] as f32, x[1] as f32, x[2] as f32]))
             .collect::<Vec<_>>();
 
-        let mesh_data : MeshData = MeshBuilder::new()
-        .with_vertices(pos_slice)
-        .with_indices(f.to_vec())
-        .into();
+        let mesh_data: MeshData = MeshBuilder::new()
+            .with_vertices(pos_slice)
+            .with_indices(f.to_vec())
+            .into();
 
-        loader.load_from_data(
-            mesh_data,
-            &mut progress,
-            &mesh_storage,
-        )
+        loader.load_from_data(mesh_data, &mut progress, &mesh_storage)
     };
 
     let mut transform = Transform::default();
     transform.set_translation_xyz(0.0, 0.0, 0.0);
     transform.set_scale(Vector3::new(12.0, 12.0, 12.0));
 
-    world
-        .create_entity()
-        .with(asset)
-        .with(transform)
-        .build();
+    world.create_entity().with(asset).with(transform).build();
 }
