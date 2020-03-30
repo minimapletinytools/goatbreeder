@@ -6,13 +6,14 @@ mod goat_game;
 mod goat;
 use goat::*;
 
+use crate::goat_game::MyPrefabData;
 use crate::goat_game::GoatGame;
 use amethyst::{
+    assets::PrefabLoaderSystemDesc,
     core::TransformBundle,
     prelude::*,
     renderer::{
-        palette::Srgb,
-        plugins::{RenderShaded3D, RenderSkybox, RenderToWindow},
+        plugins::{RenderToWindow},
         types::DefaultBackend,
         RenderingBundle,
     },
@@ -56,15 +57,15 @@ fn main() -> amethyst::Result<()> {
     let display_config_path = Path::new("./resources/display_config.ron");
 
     let game_data = GameDataBuilder::default()
+        .with_system_desc(
+            PrefabLoaderSystemDesc::<MyPrefabData>::default(),
+            "scene_loader",
+            &[],
+        )
         .with_bundle(TransformBundle::new())?
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(RenderToWindow::from_config_path(display_config_path)?)
-                .with_plugin(RenderShaded3D::default())
-                .with_plugin(RenderSkybox::with_colors(
-                    Srgb::new(0.82, 0.51, 0.50),
-                    Srgb::new(0.18, 0.11, 0.85),
-                )),
         )?;
 
     let mut game = Application::new("./", GoatGame, game_data)?;

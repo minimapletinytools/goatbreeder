@@ -1,17 +1,19 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
+use amethyst::utils::scene::BasicScenePrefab;
 use amethyst::{
-    assets::{Handle, Loader, ProgressCounter},
+    assets::{Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
     core::{math::Vector3, Transform},
     prelude::*,
     renderer::{
         camera::Camera,
-        rendy::mesh::{MeshBuilder, Position},
+        rendy::mesh::{MeshBuilder, Position, PosNormTex},
         types::{Mesh, MeshData},
     },
 };
 
 use crate::goat::*;
 
+pub type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
 pub struct GoatGame;
 pub struct Model {}
 
@@ -28,9 +30,10 @@ impl SimpleState for GoatGame {
     }
 }
 
+// ToDo move camera to prefab and try hot-reloading
 fn initialise_camera(world: &mut World) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(0.0, 0.0, 0.0);
+    transform.set_translation_xyz(0.0, 0.0, -10.0);
 
     world
         .create_entity()
@@ -66,9 +69,14 @@ fn initialize_model(world: &mut World) {
         loader.load_from_data(mesh_data, &mut progress, &mesh_storage)
     };
 
+    let prefab_handle = world.exec(|loader: PrefabLoader<'_, MyPrefabData>| {
+        loader.load("resources/prefab.ron", RonFormat, ())
+    });
+
     let mut transform = Transform::default();
     transform.set_translation_xyz(0.0, 0.0, 0.0);
     transform.set_scale(Vector3::new(12.0, 12.0, 12.0));
 
+    world.create_entity().with(prefab_handle).build();
     world.create_entity().with(asset).with(transform).build();
 }
