@@ -1,18 +1,16 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::utils::scene::BasicScenePrefab;
 use amethyst::{
-    assets::{AssetLoaderSystemData, Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
-    core::{Transform},
+    assets::{Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
+    core::Transform,
     prelude::*,
     renderer::{
         camera::Camera,
         loaders,
         mtl::{Material, MaterialDefaults},
         palette::rgb::LinSrgba,
-        rendy::{
-            mesh::{MeshBuilder, Normal, PosNormTex, Position, TexCoord},
-        },
-        types::{Mesh, MeshData, Texture},
+        rendy::mesh::{MeshBuilder, Normal, PosNormTex, Position, TexCoord},
+        types::{Mesh, MeshData},
     },
 };
 
@@ -91,22 +89,30 @@ fn initialize_model(world: &mut World) {
 
     let default_mat = world.read_resource::<MaterialDefaults>().0.clone();
 
-    let albedo = world.exec(|loader: AssetLoaderSystemData<Texture>| {
+    let albedo = {
+        let loader = world.read_resource::<Loader>();
+        let mut progress = ProgressCounter::default();
+        let mesh_storage = world.read_resource();
         loader.load_from_data(
             loaders::load_from_linear_rgba(LinSrgba::new(0.0, 1.0, 1.0, 1.0)).into(),
-            (),
+            &mut progress,
+            &mesh_storage,
         )
-    });
+    };
 
-    let mat = world.exec(|loader: AssetLoaderSystemData<Material>| {
+    let mat: Handle<Material> = {
+        let loader = world.read_resource::<Loader>();
+        let mut progress = ProgressCounter::default();
+        let mesh_storage = world.read_resource();
         loader.load_from_data(
             Material {
                 albedo,
                 ..default_mat.clone()
             },
-            (),
+            &mut progress,
+            &mesh_storage,
         )
-    });
+    };
 
     let prefab_handle = world.exec(|loader: PrefabLoader<'_, MyPrefabData>| {
         loader.load("resources/prefab.ron", RonFormat, ())
