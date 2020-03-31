@@ -6,14 +6,14 @@ mod goat_game;
 mod goat;
 use goat::*;
 
-use crate::goat_game::MyPrefabData;
 use crate::goat_game::GoatGame;
+use crate::goat_game::MyPrefabData;
 use amethyst::{
     assets::PrefabLoaderSystemDesc,
     core::TransformBundle,
     prelude::*,
     renderer::{
-        plugins::{RenderToWindow},
+        plugins::{RenderShaded3D, RenderToWindow},
         types::DefaultBackend,
         RenderingBundle,
     },
@@ -66,6 +66,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(RenderToWindow::from_config_path(display_config_path)?)
+                .with_plugin(RenderShaded3D::default()),
         )?;
 
     let mut game = Application::new("./", GoatGame, game_data)?;

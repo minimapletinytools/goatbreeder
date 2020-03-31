@@ -1,19 +1,25 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::utils::scene::BasicScenePrefab;
 use amethyst::{
-    assets::{Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
-    core::{math::Vector3, Transform},
+    assets::{AssetLoaderSystemData, Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
+    core::{Transform},
     prelude::*,
     renderer::{
         camera::Camera,
-        rendy::mesh::{MeshBuilder, Position, PosNormTex},
-        types::{Mesh, MeshData},
+        loaders,
+        mtl::{Material, MaterialDefaults},
+        palette::rgb::LinSrgba,
+        rendy::{
+            mesh::{MeshBuilder, Normal, PosNormTex, Position, TexCoord},
+        },
+        types::{Mesh, MeshData, Texture},
     },
 };
 
 use crate::goat::*;
 
 pub type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
+
 pub struct GoatGame;
 pub struct Model {}
 
@@ -30,10 +36,9 @@ impl SimpleState for GoatGame {
     }
 }
 
-// ToDo move camera to prefab and try hot-reloading
 fn initialise_camera(world: &mut World) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(0.0, 0.0, -10.0);
+    transform.set_translation_xyz(0.0, 0.0, 10.0);
 
     world
         .create_entity()
@@ -43,7 +48,7 @@ fn initialise_camera(world: &mut World) {
 }
 
 fn initialize_model(world: &mut World) {
-    let asset: Handle<Mesh> = {
+    let mesh: Handle<Mesh> = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
         let mesh_storage = world.read_resource();
@@ -53,20 +58,55 @@ fn initialize_model(world: &mut World) {
         let m = g.mesh();
         let (v, f) = m.buffers();
 
-        let pos_slice = v
+        let pos_vec = v
             .to_vec()
             .chunks(3)
             .into_iter()
             .map(|x| Position([x[0] as f32, x[1] as f32, x[2] as f32]))
             .collect::<Vec<_>>();
 
+        let norm_vec = v
+            .to_vec()
+            .chunks(3)
+            .into_iter()
+            .map(|x| Normal([x[0] as f32, x[1] as f32, x[2] as f32]))
+            .collect::<Vec<_>>();
+
+        let text_vec = v
+            .to_vec()
+            .chunks(3)
+            .into_iter()
+            .map(|_x| TexCoord([0.0, 0.0]))
+            .collect::<Vec<_>>();
+
         let mesh_data: MeshData = MeshBuilder::new()
-            .with_vertices(pos_slice)
             .with_indices(f.to_vec())
+            .with_vertices(pos_vec)
+            .with_vertices(norm_vec)
+            .with_vertices(text_vec)
             .into();
 
         loader.load_from_data(mesh_data, &mut progress, &mesh_storage)
     };
+
+    let default_mat = world.read_resource::<MaterialDefaults>().0.clone();
+
+    let albedo = world.exec(|loader: AssetLoaderSystemData<Texture>| {
+        loader.load_from_data(
+            loaders::load_from_linear_rgba(LinSrgba::new(0.0, 1.0, 1.0, 1.0)).into(),
+            (),
+        )
+    });
+
+    let mat = world.exec(|loader: AssetLoaderSystemData<Material>| {
+        loader.load_from_data(
+            Material {
+                albedo,
+                ..default_mat.clone()
+            },
+            (),
+        )
+    });
 
     let prefab_handle = world.exec(|loader: PrefabLoader<'_, MyPrefabData>| {
         loader.load("resources/prefab.ron", RonFormat, ())
@@ -74,8 +114,12 @@ fn initialize_model(world: &mut World) {
 
     let mut transform = Transform::default();
     transform.set_translation_xyz(0.0, 0.0, 0.0);
-    transform.set_scale(Vector3::new(12.0, 12.0, 12.0));
 
     world.create_entity().with(prefab_handle).build();
-    world.create_entity().with(asset).with(transform).build();
+    world
+        .create_entity()
+        .with(mesh)
+        .with(mat)
+        .with(transform)
+        .build();
 }
