@@ -4,3 +4,4 @@ animalclub.h
 libanimalclub.*
 **/target
 .#Cargo.toml
+src/ccall/goat.obj

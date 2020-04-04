@@ -54,27 +54,28 @@ fn initialize_model(world: &mut World) {
         let g = Goat::random();
         println!("printing before mesh");
         let m = g.mesh();
-        let (v, f) = m.buffers();
+        let (p, n, tc, f) = m.buffers();
+        let _ = write_obj_from_buffers(p, n, tc, f);
 
-        let pos_vec = v
+        let pos_vec = p
             .to_vec()
             .chunks(3)
             .into_iter()
             .map(|x| Position([x[0] as f32, x[1] as f32, x[2] as f32]))
             .collect::<Vec<_>>();
 
-        let norm_vec = v
+        let norm_vec = n
             .to_vec()
             .chunks(3)
             .into_iter()
             .map(|x| Normal([x[0] as f32, x[1] as f32, x[2] as f32]))
             .collect::<Vec<_>>();
 
-        let text_vec = v
+        let text_vec = tc
             .to_vec()
-            .chunks(3)
+            .chunks(2)
             .into_iter()
-            .map(|_x| TexCoord([0.0, 0.0]))
+            .map(|x| TexCoord([x[0] as f32, x[1] as f32]))
             .collect::<Vec<_>>();
 
         let mesh_data: MeshData = MeshBuilder::new()
