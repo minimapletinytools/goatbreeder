@@ -21,24 +21,25 @@ use amethyst::{
 
 use std::path::Path;
 
-fn main() -> amethyst::Result<()> {
-    println!("Hello GOAT!");
-    rs_goat_init();
+fn test_goat() {
     {
         println!("generating goat");
         let g = Goat::random();
 
-        println!("printing mesh");
+        //println!("printing mesh");
         let m = g.mesh();
-        let (v, f) = m.buffers();
+        let (v, n, tc, f) = m.buffers();
+
+        println!("writing mesh to file");
+        let _ = write_obj_from_buffers(v, n, tc, f);
 
         // print buffers ourselves
-        println!("{:?}", v);
-        println!("vectors above-------------");
-        println!("{:?}", f);
+        //println!("{:?}", v);
+        //println!("vectors above-------------");
+        //println!("{:?}", f);
 
         // print using library
-        g.dump();
+        //g.dump();
 
         println!("breeding");
 
@@ -48,10 +49,18 @@ fn main() -> amethyst::Result<()> {
         let g3 = breed(&g1, &g2);
 
         // print to check results
-        g3.dump();
+        //g3.dump();
 
         println!("done");
     }
+}
+
+fn main() -> amethyst::Result<()> {
+    println!("Hello GOAT!");
+    rs_goat_init();
+
+    //test_goat();
+
     amethyst::start_logger(Default::default());
 
     let display_config_path = Path::new("./resources/display_config.ron");
