@@ -3,10 +3,10 @@ use libc::c_void;
 use std::slice::from_raw_parts;
 
 // for writing obj file
-use std::fs::{File};
-use std::path::Path;
-use std::io::LineWriter;
+use std::fs::File;
 use std::io::prelude::*;
+use std::io::LineWriter;
+use std::path::Path;
 
 //#[link(name = "animalclub")]
 extern "C" {
@@ -63,12 +63,8 @@ impl<'a> Mesh<'a> {
                 self.mesh.normals_count as usize,
             )
         };
-        let tc = unsafe {
-            from_raw_parts(
-                self.mesh.uvs as *const f32,
-                self.mesh.uvs_count as usize,
-            )
-        };
+        let tc =
+            unsafe { from_raw_parts(self.mesh.uvs as *const f32, self.mesh.uvs_count as usize) };
         let f = unsafe {
             from_raw_parts(
                 self.mesh.faces as *const u32,
@@ -105,10 +101,21 @@ pub fn write_obj_from_buffers(p: &[f32], n: &[f32], tc: &[f32], f: &[u32]) -> st
     }
 
     for x in f.to_vec().chunks(3) {
-        file.write_all(format!("f {}/{}/{} {}/{}/{} {}/{}/{}\n",
-            x[0]+1, x[0]+1, x[0]+1,
-            x[1]+1, x[1]+1, x[1]+1,
-            x[2]+1, x[2]+1, x[2]+1).as_bytes())?;
+        file.write_all(
+            format!(
+                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
+                x[0] + 1,
+                x[0] + 1,
+                x[0] + 1,
+                x[1] + 1,
+                x[1] + 1,
+                x[1] + 1,
+                x[2] + 1,
+                x[2] + 1,
+                x[2] + 1
+            )
+            .as_bytes(),
+        )?;
     }
 
     file.flush()?;

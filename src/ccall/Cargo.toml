@@ -14,10 +14,13 @@ mac_render = ["amethyst/metal"]
 
 [dependencies]
 libc = "0.2.0"
-amethyst_gltf = "0.10.0"
 
 [profile.dev]
 rpath = true
+opt-level = 0
+
+[profile.release]
+opt-level = 3
 
 [dependencies.amethyst]
 version = "0.15"

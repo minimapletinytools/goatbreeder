@@ -2,7 +2,7 @@ use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::utils::scene::BasicScenePrefab;
 use amethyst::{
     assets::{Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
-    core::Transform,
+    core::{math::Vector3, Transform},
     prelude::*,
     renderer::{
         camera::Camera,
@@ -16,12 +16,44 @@ use amethyst::{
 
 use crate::goat::*;
 
+pub const GOAT_NUMBER: u32 = 6;
+pub const GOAT_Y: f32 = 2.0;
+
 pub type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
 
 pub struct GoatGame;
-pub struct Model {}
+pub struct GoatStruct {
+    pub index: u32,
+    pub hovering: bool,
+    pub selected: bool,
+}
 
-impl Component for Model {
+#[derive(Default)]
+pub struct GameState {
+    pub hovering_index: i32,
+}
+
+impl GoatStruct {
+    fn new(input_index: u32) -> GoatStruct {
+        GoatStruct {
+            index: input_index,
+            hovering: false,
+            selected: false,
+        }
+    }
+}
+
+impl GameState {
+    fn new() -> GameState {
+        GameState { hovering_index: 0 }
+    }
+}
+
+impl Component for GoatStruct {
+    type Storage = DenseVecStorage<Self>;
+}
+
+impl Component for GameState {
     type Storage = DenseVecStorage<Self>;
 }
 
@@ -30,13 +62,15 @@ impl SimpleState for GoatGame {
         let StateData { world, .. } = data;
 
         initialise_camera(world);
-        initialize_model(world);
+        initialise_game_state(world);
+        initialize_prefab(world);
+        initialize_goats(world);
     }
 }
 
 fn initialise_camera(world: &mut World) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(0.0, 0.0, 10.0);
+    transform.set_translation_xyz(3.5, 0.0, 7.0);
 
     world
         .create_entity()
@@ -45,7 +79,36 @@ fn initialise_camera(world: &mut World) {
         .build();
 }
 
-fn initialize_model(world: &mut World) {
+fn initialise_game_state(world: &mut World) {
+    world.insert(GameState::new());
+}
+
+fn initialize_prefab(world: &mut World) {
+    let prefab_handle = world.exec(|loader: PrefabLoader<'_, MyPrefabData>| {
+        loader.load("resources/prefab.ron", RonFormat, ())
+    });
+
+    world.create_entity().with(prefab_handle).build();
+}
+
+fn initialize_goats(world: &mut World) {
+    for iter in 0..GOAT_NUMBER {
+        let (mesh, mat) = make_mesh_and_mat(world);
+        let mut transform = Transform::default();
+        transform.set_translation_xyz(1.3 * iter as f32, GOAT_Y, 0.0);
+        transform.set_scale(Vector3::new(1.0, 1.0, 1.0));
+
+        world
+            .create_entity()
+            .with(mesh)
+            .with(mat)
+            .with(GoatStruct::new(iter))
+            .with(transform)
+            .build();
+    }
+}
+
+pub fn make_mesh_and_mat(world: &mut World) -> (Handle<Mesh>, Handle<Material>) {
     let mesh: Handle<Mesh> = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
@@ -95,7 +158,20 @@ fn initialize_model(world: &mut World) {
         let mut progress = ProgressCounter::default();
         let mesh_storage = world.read_resource();
         loader.load_from_data(
-            loaders::load_from_linear_rgba(LinSrgba::new(0.0, 1.0, 1.0, 1.0)).into(),
+            loaders::load_from_linear_rgba(LinSrgba::new(1.0, 1.0, 1.0, 0.5)).into(),
+            &mut progress,
+            &mesh_storage,
+        )
+    };
+
+    let metallic_roughness = {
+        let loader = world.read_resource::<Loader>();
+        let mut progress = ProgressCounter::default();
+        let mesh_storage = world.read_resource();
+        let roughness = 1f32 / 4.0f32;
+        let metallic = 1f32 / 4.0f32;
+        loader.load_from_data(
+            loaders::load_from_linear_rgba(LinSrgba::new(0.0, roughness, metallic, 0.0)).into(),
             &mut progress,
             &mesh_storage,
         )
@@ -108,25 +184,13 @@ fn initialize_model(world: &mut World) {
         loader.load_from_data(
             Material {
                 albedo,
-                ..default_mat.clone()
+                metallic_roughness,
+                ..default_mat
             },
             &mut progress,
             &mesh_storage,
         )
     };
 
-    let prefab_handle = world.exec(|loader: PrefabLoader<'_, MyPrefabData>| {
-        loader.load("resources/prefab.ron", RonFormat, ())
-    });
-
-    let mut transform = Transform::default();
-    transform.set_translation_xyz(0.0, 0.0, 0.0);
-
-    world.create_entity().with(prefab_handle).build();
-    world
-        .create_entity()
-        .with(mesh)
-        .with(mat)
-        .with(transform)
-        .build();
+    (mesh, mat)
 }

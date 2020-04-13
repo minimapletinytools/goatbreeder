@@ -4,13 +4,18 @@ extern crate libc;
 mod goat_game;
 
 mod goat;
+mod systems;
 use goat::*;
+
+use std::path::Path;
+use std::time::Duration;
 
 use crate::goat_game::GoatGame;
 use crate::goat_game::MyPrefabData;
 use amethyst::{
     assets::PrefabLoaderSystemDesc,
-    core::TransformBundle,
+    core::{frame_limiter::FrameRateLimitStrategy, TransformBundle},
+    input::{InputBundle, StringBindings},
     prelude::*,
     renderer::{
         plugins::{RenderShaded3D, RenderToWindow},
@@ -19,8 +24,7 @@ use amethyst::{
     },
 };
 
-use std::path::Path;
-
+#[test]
 fn test_goat() {
     {
         println!("generating goat");
@@ -46,7 +50,7 @@ fn test_goat() {
         // test breeding
         let g1 = Goat::random();
         let g2 = Goat::random();
-        let g3 = breed(&g1, &g2);
+        let _g3 = breed(&g1, &g2);
 
         // print to check results
         //g3.dump();
@@ -59,7 +63,9 @@ fn main() -> amethyst::Result<()> {
     println!("Hello GOAT!");
     rs_goat_init();
 
-    //test_goat();
+    let bindings_path = Path::new("./resources/input.ron");
+    let input_bundle =
+        InputBundle::<StringBindings>::new().with_bindings_from_file(bindings_path)?;
 
     amethyst::start_logger(Default::default());
 
@@ -71,6 +77,8 @@ fn main() -> amethyst::Result<()> {
             "scene_loader",
             &[],
         )
+        .with_bundle(input_bundle)?
+        .with(systems::GoatSystem, "goats", &["input_system"])
         .with_bundle(TransformBundle::new())?
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
@@ -78,7 +86,12 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderShaded3D::default()),
         )?;
 
-    let mut game = Application::new("./", GoatGame, game_data)?;
+    let mut game = Application::build("./", GoatGame)?
+        .with_frame_limit(
+            FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
+            60,
+        )
+        .build(game_data)?;
 
     game.run();
 
