@@ -31,6 +31,9 @@ pub struct GoatStruct {
 #[derive(Default)]
 pub struct GameState {
     pub hovering_index: i32,
+    // due to how fast actions are input there will be 8 inputs
+    // needed to trigger a switch per index
+    pub eight_count: i32,
 }
 
 impl GoatStruct {
@@ -45,7 +48,10 @@ impl GoatStruct {
 
 impl GameState {
     fn new() -> GameState {
-        GameState { hovering_index: 0 }
+        GameState {
+            hovering_index: 0,
+            eight_count: 0,
+        }
     }
 }
 
@@ -100,7 +106,7 @@ fn initialize_goats(world: &mut World) {
 
         world
             .create_entity()
-            .with(mesh)
+            .with(mesh.clone())
             .with(mat)
             .with(GoatStruct::new(iter))
             .with(transform)
@@ -183,9 +189,9 @@ pub fn make_mesh_and_mat(world: &mut World) -> (Handle<Mesh>, Handle<Material>) 
         let mesh_storage = world.read_resource();
         loader.load_from_data(
             Material {
-                albedo,
+                albedo: albedo.clone(),
                 metallic_roughness,
-                ..default_mat
+                ..default_mat.clone()
             },
             &mut progress,
             &mesh_storage,
