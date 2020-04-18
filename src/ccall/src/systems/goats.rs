@@ -52,11 +52,11 @@ impl<'s> System<'s> for GoatSystem {
             if !goat.hovering && game_state.hovering_index == goat.index as i32 {
                 println!("making goat hover with index {}", goat.index);
                 goat.hovering = true;
-                transform.set_translation_y(0.0);
+                transform.move_down(GOAT_Y);
             } else if goat.hovering && game_state.hovering_index != goat.index as i32 {
                 println!("making goat stop hovering with index {}", goat.index);
                 goat.hovering = false;
-                transform.set_translation_y(GOAT_Y);
+                transform.move_up(GOAT_Y);
             }
 
             if goat.selected {

@@ -1,7 +1,10 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::utils::scene::BasicScenePrefab;
 use amethyst::{
-    assets::{Handle, Loader, PrefabLoader, ProgressCounter, RonFormat},
+    assets::{
+        AssetStorage, Handle, Loader, PrefabLoader, ProgressCounter,
+        RonFormat,
+    },
     core::{math::Vector3, Transform},
     prelude::*,
     renderer::{
@@ -67,6 +70,7 @@ impl SimpleState for GoatGame {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let StateData { world, .. } = data;
 
+        println!("on_start is being called again");
         initialise_camera(world);
         initialise_game_state(world);
         initialize_prefab(world);
@@ -98,6 +102,7 @@ fn initialize_prefab(world: &mut World) {
 }
 
 fn initialize_goats(world: &mut World) {
+    println!("calling init goats again");
     for iter in 0..GOAT_NUMBER {
         let (mesh, mat) = make_mesh_and_mat(world);
         let mut transform = Transform::default();
@@ -107,7 +112,7 @@ fn initialize_goats(world: &mut World) {
         world
             .create_entity()
             .with(mesh.clone())
-            .with(mat)
+            .with(mat.clone())
             .with(GoatStruct::new(iter))
             .with(transform)
             .build();
@@ -118,13 +123,13 @@ pub fn make_mesh_and_mat(world: &mut World) -> (Handle<Mesh>, Handle<Material>) 
     let mesh: Handle<Mesh> = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
-        let mesh_storage = world.read_resource();
+        let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
         println!("generating goat");
         let g = Goat::random();
         println!("printing before mesh");
         let m = g.mesh();
         let (p, n, tc, f) = m.buffers();
-        let _ = write_obj_from_buffers(p, n, tc, f);
+        // let _ = write_obj_from_buffers(p, n, tc, f);
 
         let pos_vec = p
             .to_vec()
@@ -162,31 +167,31 @@ pub fn make_mesh_and_mat(world: &mut World) -> (Handle<Mesh>, Handle<Material>) 
     let albedo = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
-        let mesh_storage = world.read_resource();
+        let textures = &world.read_resource();
         loader.load_from_data(
             loaders::load_from_linear_rgba(LinSrgba::new(1.0, 1.0, 1.0, 0.5)).into(),
             &mut progress,
-            &mesh_storage,
+            textures
         )
     };
 
     let metallic_roughness = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
-        let mesh_storage = world.read_resource();
+        let text = &world.read_resource();
         let roughness = 1f32 / 4.0f32;
         let metallic = 1f32 / 4.0f32;
         loader.load_from_data(
             loaders::load_from_linear_rgba(LinSrgba::new(0.0, roughness, metallic, 0.0)).into(),
             &mut progress,
-            &mesh_storage,
+            text
         )
     };
 
     let mat: Handle<Material> = {
         let loader = world.read_resource::<Loader>();
         let mut progress = ProgressCounter::default();
-        let mesh_storage = world.read_resource();
+        let materials = &world.read_resource();
         loader.load_from_data(
             Material {
                 albedo: albedo.clone(),
@@ -194,7 +199,7 @@ pub fn make_mesh_and_mat(world: &mut World) -> (Handle<Mesh>, Handle<Material>) 
                 ..default_mat.clone()
             },
             &mut progress,
-            &mesh_storage,
+            materials
         )
     };
 
