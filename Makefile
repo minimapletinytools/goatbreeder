@@ -7,10 +7,10 @@ copyanimalclubdeps: animalclub
 	cp animalclub/ctest/libanimalclub.* ./src/ccall
 
 ccall: copyanimalclubdeps
-	cd src/ccall && cargo build
+	cd src/ccall && CXX=$(which clang++) cargo build
 
 run: ccall
-	cd src/ccall && cargo run
+	cd src/ccall && CXX=$(which clang++) cargo run
 
 clean:
 	cd animalclub && make clean
