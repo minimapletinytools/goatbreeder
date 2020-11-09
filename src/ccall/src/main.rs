@@ -1,88 +1,90 @@
-extern crate amethyst;
-extern crate libc;
-
-mod goat_game;
-
 mod goat;
+
+use bevy::prelude::*;
+use bevy::render::{
+    mesh::{Indices, Mesh, VertexAttributeValues},
+    pipeline::PrimitiveTopology,
+};
 use goat::*;
 
-use crate::goat_game::GoatGame;
-use crate::goat_game::MyPrefabData;
-use amethyst::{
-    assets::PrefabLoaderSystemDesc,
-    core::TransformBundle,
-    prelude::*,
-    renderer::{
-        plugins::{RenderShaded3D, RenderToWindow},
-        types::DefaultBackend,
-        RenderingBundle,
-    },
-};
-
-use std::path::Path;
-
-fn test_goat() {
-    {
-        println!("generating goat");
-        let g = Goat::random();
-
-        //println!("printing mesh");
-        let m = g.mesh();
-        let (v, n, tc, f) = m.buffers();
-
-        println!("writing mesh to file");
-        let _ = write_obj_from_buffers(v, n, tc, f);
-
-        // print buffers ourselves
-        //println!("{:?}", v);
-        //println!("vectors above-------------");
-        //println!("{:?}", f);
-
-        // print using library
-        //g.dump();
-
-        println!("breeding");
-
-        // test breeding
-        let g1 = Goat::random();
-        let g2 = Goat::random();
-        let g3 = breed(&g1, &g2);
-
-        // print to check results
-        //g3.dump();
-
-        println!("done");
-    }
-}
-
-fn main() -> amethyst::Result<()> {
-    println!("Hello GOAT!");
+fn main() -> Result<(), String> {
     rs_goat_init();
 
-    //test_goat();
-
-    amethyst::start_logger(Default::default());
-
-    let display_config_path = Path::new("./resources/display_config.ron");
-
-    let game_data = GameDataBuilder::default()
-        .with_system_desc(
-            PrefabLoaderSystemDesc::<MyPrefabData>::default(),
-            "scene_loader",
-            &[],
-        )
-        .with_bundle(TransformBundle::new())?
-        .with_bundle(
-            RenderingBundle::<DefaultBackend>::new()
-                .with_plugin(RenderToWindow::from_config_path(display_config_path)?)
-                .with_plugin(RenderShaded3D::default()),
-        )?;
-
-    let mut game = Application::new("./", GoatGame, game_data)?;
-
-    game.run();
+    App::build()
+        .add_plugins(DefaultPlugins)
+        .add_startup_system(add_goats.system())
+        .run();
 
     rs_goat_exit();
 
     Ok(())
+}
+
+fn add_goats(
+    commands: &mut Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    println!("generating goat");
+    let (p, n, tc, f) = Goat::random().mesh().buffers();
+    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+    let pos_vec = p
+        .to_vec()
+        .chunks(3)
+        .into_iter()
+        .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
+        .collect::<Vec<_>>();
+
+    let norm_vec = n
+        .to_vec()
+        .chunks(3)
+        .into_iter()
+        .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
+        .collect::<Vec<_>>();
+
+    let text_vec = tc
+        .to_vec()
+        .chunks(2)
+        .into_iter()
+        .map(|x| [x[0] as f32, x[1] as f32])
+        .collect::<Vec<_>>();
+
+    mesh.set_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        VertexAttributeValues::Float3(pos_vec),
+    );
+    mesh.set_attribute(
+        Mesh::ATTRIBUTE_NORMAL,
+        VertexAttributeValues::Float3(norm_vec),
+    );
+    mesh.set_attribute(
+        Mesh::ATTRIBUTE_UV_0,
+        VertexAttributeValues::Float2(text_vec),
+    );
+    mesh.set_indices(Some(Indices::U32(f.to_vec())));
+
+    let mesh_handle = meshes.add(mesh);
+    let material_handle = materials.add(StandardMaterial {
+        albedo: Color::rgb(0.8, 0.7, 0.6),
+        ..Default::default()
+    });
+
+    commands
+        .spawn(PbrComponents {
+            mesh: mesh_handle,
+            material: material_handle,
+            // transform: Transform::from_translation(Vec3::new(-3.0, 0.0, 0.0)),
+            ..Default::default()
+        })
+        // light
+        .spawn(LightComponents {
+            transform: Transform::from_translation(Vec3::new(4.0, 5.0, 4.0)),
+            ..Default::default()
+        })
+        // camera
+        .spawn(Camera3dComponents {
+            transform: Transform::from_translation(Vec3::new(0.0, 3.0, 10.0))
+                .looking_at(Vec3::default(), Vec3::unit_y()),
+            ..Default::default()
+        });
 }

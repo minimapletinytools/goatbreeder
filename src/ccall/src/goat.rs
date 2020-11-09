@@ -1,14 +1,14 @@
-extern crate libc;
 use libc::c_void;
 use std::slice::from_raw_parts;
 
 // for writing obj file
-use std::fs::{File};
-use std::path::Path;
-use std::io::LineWriter;
+use std::fs::File;
 use std::io::prelude::*;
+use std::io::LineWriter;
+use std::path::Path;
 
 //#[link(name = "animalclub")]
+#[allow(dead_code)]
 extern "C" {
     fn my_init();
     fn my_exit();
@@ -63,12 +63,8 @@ impl<'a> Mesh<'a> {
                 self.mesh.normals_count as usize,
             )
         };
-        let tc = unsafe {
-            from_raw_parts(
-                self.mesh.uvs as *const f32,
-                self.mesh.uvs_count as usize,
-            )
-        };
+        let tc =
+            unsafe { from_raw_parts(self.mesh.uvs as *const f32, self.mesh.uvs_count as usize) };
         let f = unsafe {
             from_raw_parts(
                 self.mesh.faces as *const u32,
@@ -80,6 +76,7 @@ impl<'a> Mesh<'a> {
 }
 
 // for testing
+#[allow(dead_code)]
 pub fn write_obj_from_buffers(p: &[f32], n: &[f32], tc: &[f32], f: &[u32]) -> std::io::Result<()> {
     let path = Path::new("goat.obj");
     let display = path.display();
@@ -105,10 +102,21 @@ pub fn write_obj_from_buffers(p: &[f32], n: &[f32], tc: &[f32], f: &[u32]) -> st
     }
 
     for x in f.to_vec().chunks(3) {
-        file.write_all(format!("f {}/{}/{} {}/{}/{} {}/{}/{}\n",
-            x[0]+1, x[0]+1, x[0]+1,
-            x[1]+1, x[1]+1, x[1]+1,
-            x[2]+1, x[2]+1, x[2]+1).as_bytes())?;
+        file.write_all(
+            format!(
+                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
+                x[0] + 1,
+                x[0] + 1,
+                x[0] + 1,
+                x[1] + 1,
+                x[1] + 1,
+                x[1] + 1,
+                x[2] + 1,
+                x[2] + 1,
+                x[2] + 1
+            )
+            .as_bytes(),
+        )?;
     }
 
     file.flush()?;
@@ -137,6 +145,7 @@ impl Goat {
         let mesh = unsafe { &*goat_mesh(self.hsptr) };
         Mesh { mesh: &mesh }
     }
+    #[allow(dead_code)]
     pub fn dump(&self) {
         unsafe {
             dump_goat(self.hsptr);
@@ -152,6 +161,7 @@ impl Drop for Goat {
     }
 }
 
+#[allow(dead_code)]
 pub fn breed(g1: &Goat, g2: &Goat) -> Goat {
     let hsptr: *const c_void = unsafe { breed_goat(g1.hsptr, g2.hsptr) };
     Goat { hsptr }

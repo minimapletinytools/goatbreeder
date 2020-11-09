@@ -1,9 +1,0 @@
-(
-  title: "goat_game",
-  dimensions: Some((1024,1024)),
-  max_dimensions: None,
-  min_dimensions: None,
-  multisampling: 1,
-  visibility: true,
-  vsync: true,
-)
