@@ -133,10 +133,7 @@ fn selection_handler(
                 None => {
                     let usable_goat = goat_entity.goat.lock().unwrap();
                     selected_goat_parent.maybe_parent = Some(GoatEntity {
-                        goat: Mutex::new(Goat {
-                            id: usable_goat.id,
-                            hsptr: usable_goat.hsptr,
-                        }),
+                        goat: Mutex::new(usable_goat.clone()),
                     });
                     break;
                 }

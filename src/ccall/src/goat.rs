@@ -133,7 +133,7 @@ impl<'a> Drop for Mesh<'a> {
 }
 
 pub struct Goat {
-    pub hsptr: *const c_void,
+    hsptr: *const c_void,
     pub id: u64,
 }
 
@@ -153,6 +153,15 @@ impl Goat {
     pub fn dump(&self) {
         unsafe {
             dump_goat(self.hsptr);
+        }
+    }
+}
+
+impl Clone for Goat {
+    fn clone(&self) -> Self {
+        Goat {
+            hsptr: self.hsptr,
+            id: self.id,
         }
     }
 }
