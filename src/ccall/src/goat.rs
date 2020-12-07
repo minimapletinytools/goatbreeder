@@ -157,15 +157,6 @@ impl Goat {
     }
 }
 
-impl Clone for Goat {
-    fn clone(&self) -> Self {
-        Goat {
-            hsptr: self.hsptr,
-            id: self.id,
-        }
-    }
-}
-
 unsafe impl Send for Goat {}
 
 impl Drop for Goat {
