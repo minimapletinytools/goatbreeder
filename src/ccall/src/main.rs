@@ -187,10 +187,3 @@ fn init_game(
         })
         .with(PickSource::default());
 }
-
-// when 2 goats selected then trigger a breeding system
-// despawns all current goats and get the 2 selected goats
-// call breed on selected goats x times and repeat
-
-// probably need a breed goat function
-// just pass-in 2 random goats at start and commands
