@@ -28,6 +28,7 @@ fn main() -> Result<(), String> {
         .add_resource(SelectedGoatParent { maybe_parent: None })
         .add_startup_system(init_game)
         .add_system(selection_handler)
+        .add_system(rotate_goats)
         .run();
 
     rs_goat_exit();
@@ -44,8 +45,8 @@ fn breed_goats(
 ) {
     println!("generating goat");
     // todo cleanup existing goats?
-    for x in -2..2 {
-        for y in -2..2 {
+    for x in -2..3 {
+        for y in -1..2 {
             loop {
                 let new_goat = breed(parent1, parent2);
                 let (p, n, tc, f) = new_goat.mesh().buffers();
@@ -116,6 +117,12 @@ fn breed_goats(
                 };
             }
         }
+    }
+}
+
+fn rotate_goats(mut query: Query<(&GoatEntity, &mut Transform)>) {
+    for (_goat_entity, mut transform) in query.iter_mut() {
+        transform.rotate(Quat::from_rotation_y(std::f32::consts::PI / 140.0));
     }
 }
 
