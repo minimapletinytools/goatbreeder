@@ -8,7 +8,9 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.0"
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "213ba9629a27084f40e1d1cefab49d2819cf1f0b" }
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "master" }
+bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "a6c32978fbd297af3715e5fe5833c83ff36e9aaf" }
+rand = "0.7"
 
 [profile.dev]
 rpath = true

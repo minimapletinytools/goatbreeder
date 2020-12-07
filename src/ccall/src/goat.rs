@@ -133,13 +133,17 @@ impl<'a> Drop for Mesh<'a> {
 }
 
 pub struct Goat {
-    hsptr: *const c_void,
+    pub hsptr: *const c_void,
+    pub id: u64,
 }
 
 impl Goat {
     pub fn random() -> Self {
         let hsptr: *const c_void = unsafe { random_goat() };
-        Goat { hsptr }
+        Goat {
+            hsptr,
+            id: rand::random(),
+        }
     }
     pub fn mesh<'a>(&self) -> Mesh<'a> {
         let mesh = unsafe { &*goat_mesh(self.hsptr) };
@@ -153,6 +157,17 @@ impl Goat {
     }
 }
 
+impl Clone for Goat {
+    fn clone(&self) -> Self {
+        Goat {
+            hsptr: self.hsptr,
+            id: self.id,
+        }
+    }
+}
+
+unsafe impl Send for Goat {}
+
 impl Drop for Goat {
     fn drop(&mut self) {
         unsafe {
@@ -161,8 +176,10 @@ impl Drop for Goat {
     }
 }
 
-#[allow(dead_code)]
 pub fn breed(g1: &Goat, g2: &Goat) -> Goat {
     let hsptr: *const c_void = unsafe { breed_goat(g1.hsptr, g2.hsptr) };
-    Goat { hsptr }
+    Goat {
+        hsptr,
+        id: rand::random(),
+    }
 }
