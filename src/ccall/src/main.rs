@@ -44,7 +44,6 @@ fn breed_goats(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     println!("generating goat");
-    // todo cleanup existing goats?
     for x in -2..3 {
         for y in -1..2 {
             loop {
