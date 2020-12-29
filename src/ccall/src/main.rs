@@ -46,9 +46,12 @@ fn breed_goats(
     println!("generating goat");
     for x in -2..3 {
         for y in -1..2 {
-            loop {
+            //loop {
+            {
                 let new_goat = breed(parent1, parent2);
-                let (p, n, tc, f) = new_goat.mesh().buffers();
+                let goat_mesh = new_goat.mesh();
+                let (p, n, tc, f) = goat_mesh.buffers();
+
                 let pos_vec = p
                     .to_vec()
                     .chunks(3)
@@ -85,6 +88,7 @@ fn breed_goats(
                 let faces_vec = f.to_vec();
                 // below is a hack to work around bad goat generation causing panics with mod_picking
                 if faces_vec.iter().all(|x| *x <= 900_000_000) {
+                    //eprintln!("{:?}", f);
                     mesh.set_indices(Some(Indices::U32(faces_vec)));
 
                     let mesh_handle = meshes.add(mesh);
@@ -109,10 +113,19 @@ fn breed_goats(
                         .with(HighlightablePickMesh::default())
                         .with(SelectablePickMesh::default());
 
-                    break;
+                    //break;
                 } else {
+
                     eprintln!("there is a bug that seems to be occuring more as you breed");
                     eprintln!("retrying");
+                    //eprintln!("{:?}", f);
+                    eprintln!("{:?}", f.as_ptr() as *const u32);
+                    let (p, n, tc, f) = goat_mesh.buffers();
+                    //eprintln!("{:?}", f);
+                    eprintln!("{:?}", f.as_ptr() as *const u32);
+                    let (p, n, tc, f) = goat_mesh.buffers();
+                    eprintln!("{:?}", f.as_ptr() as *const u32);
+                    //new_goat.dump(format!("goat{}.txt", new_goat.id));
                 };
             }
         }
