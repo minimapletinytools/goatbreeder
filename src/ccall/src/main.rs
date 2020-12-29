@@ -46,87 +46,70 @@ fn breed_goats(
     println!("generating goat");
     for x in -2..3 {
         for y in -1..2 {
-            //loop {
-            {
-                let new_goat = breed(parent1, parent2);
-                let goat_mesh = new_goat.mesh();
-                let (p, n, tc, f) = goat_mesh.buffers();
+            let new_goat = breed(parent1, parent2);
+            let goat_mesh = new_goat.mesh();
+            let (p, n, tc, f) = goat_mesh.buffers();
 
-                let pos_vec = p
-                    .to_vec()
-                    .chunks(3)
-                    .into_iter()
-                    .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
-                    .collect::<Vec<_>>();
+            let pos_vec = p
+                .to_vec()
+                .chunks(3)
+                .into_iter()
+                .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
+                .collect::<Vec<_>>();
+            let norm_vec = n
+                .to_vec()
+                .chunks(3)
+                .into_iter()
+                .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
+                .collect::<Vec<_>>();
+            let text_vec = tc
+                .to_vec()
+                .chunks(2)
+                .into_iter()
+                .map(|x| [x[0] as f32, x[1] as f32])
+                .collect::<Vec<_>>();
+            let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
-                let norm_vec = n
-                    .to_vec()
-                    .chunks(3)
-                    .into_iter()
-                    .map(|x| [x[0] as f32, x[1] as f32, x[2] as f32])
-                    .collect::<Vec<_>>();
-                let text_vec = tc
-                    .to_vec()
-                    .chunks(2)
-                    .into_iter()
-                    .map(|x| [x[0] as f32, x[1] as f32])
-                    .collect::<Vec<_>>();
-                let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+            mesh.set_attribute(
+                Mesh::ATTRIBUTE_POSITION,
+                VertexAttributeValues::Float3(pos_vec),
+            );
+            mesh.set_attribute(
+                Mesh::ATTRIBUTE_NORMAL,
+                VertexAttributeValues::Float3(norm_vec),
+            );
+            mesh.set_attribute(
+                Mesh::ATTRIBUTE_UV_0,
+                VertexAttributeValues::Float2(text_vec),
+            );
+            let faces_vec = f.to_vec();
+            // below is a hack to work around bad goat generation causing panics with mod_picking
+            if faces_vec.iter().all(|x| *x <= 900_000_000) {
+                //eprintln!("{:?}", f);
+                mesh.set_indices(Some(Indices::U32(faces_vec)));
 
-                mesh.set_attribute(
-                    Mesh::ATTRIBUTE_POSITION,
-                    VertexAttributeValues::Float3(pos_vec),
-                );
-                mesh.set_attribute(
-                    Mesh::ATTRIBUTE_NORMAL,
-                    VertexAttributeValues::Float3(norm_vec),
-                );
-                mesh.set_attribute(
-                    Mesh::ATTRIBUTE_UV_0,
-                    VertexAttributeValues::Float2(text_vec),
-                );
-                let faces_vec = f.to_vec();
-                // below is a hack to work around bad goat generation causing panics with mod_picking
-                if faces_vec.iter().all(|x| *x <= 900_000_000) {
-                    //eprintln!("{:?}", f);
-                    mesh.set_indices(Some(Indices::U32(faces_vec)));
+                let mesh_handle = meshes.add(mesh);
+                let material_handle = materials.add(StandardMaterial {
+                    albedo: Color::rgb(0.8, 0.7, 0.6),
+                    ..Default::default()
+                });
+                let mesh_transform = Vec3::new(2.0 * x as f32, 2.0 * y as f32, 0.0);
 
-                    let mesh_handle = meshes.add(mesh);
-                    let material_handle = materials.add(StandardMaterial {
-                        albedo: Color::rgb(0.8, 0.7, 0.6),
+                commands
+                    .spawn(PbrBundle {
+                        mesh: mesh_handle,
+                        material: material_handle,
+                        transform: Transform::from_translation(mesh_transform),
                         ..Default::default()
-                    });
-                    let mesh_transform = Vec3::new(2.0 * x as f32, 2.0 * y as f32, 0.0);
+                    })
+                    .with(GoatEntity {
+                        goat: Mutex::new(new_goat),
+                    })
+                    .with(PickableMesh::default())
+                    .with(InteractableMesh::default())
+                    .with(HighlightablePickMesh::default())
+                    .with(SelectablePickMesh::default());
 
-                    commands
-                        .spawn(PbrBundle {
-                            mesh: mesh_handle,
-                            material: material_handle,
-                            transform: Transform::from_translation(mesh_transform),
-                            ..Default::default()
-                        })
-                        .with(GoatEntity {
-                            goat: Mutex::new(new_goat),
-                        })
-                        .with(PickableMesh::default())
-                        .with(InteractableMesh::default())
-                        .with(HighlightablePickMesh::default())
-                        .with(SelectablePickMesh::default());
-
-                    //break;
-                } else {
-
-                    eprintln!("there is a bug that seems to be occuring more as you breed");
-                    eprintln!("retrying");
-                    //eprintln!("{:?}", f);
-                    eprintln!("{:?}", f.as_ptr() as *const u32);
-                    let (p, n, tc, f) = goat_mesh.buffers();
-                    //eprintln!("{:?}", f);
-                    eprintln!("{:?}", f.as_ptr() as *const u32);
-                    let (p, n, tc, f) = goat_mesh.buffers();
-                    eprintln!("{:?}", f.as_ptr() as *const u32);
-                    //new_goat.dump(format!("goat{}.txt", new_goat.id));
-                };
             }
         }
     }
