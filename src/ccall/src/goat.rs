@@ -1,4 +1,5 @@
 use libc::c_void;
+use libc::c_char;
 use std::slice::from_raw_parts;
 
 // for writing obj file
@@ -13,7 +14,7 @@ extern "C" {
     fn my_init();
     fn my_exit();
     //fn breed(seed: c_int, dna1: *mut char, dna2: *mut char, outdna: *mut char, size: c_int); // commented out to exceed 80 chars
-    fn dump_goat(goat: *const c_void);
+    fn dump_goat(goat: *const c_void, filename: *const c_char);
     fn random_goat() -> *const c_void;
     fn free_goat(goat: *const c_void);
     fn breed_goat(goat1: *const c_void, goat2: *const c_void) -> *const c_void;
@@ -49,6 +50,7 @@ pub struct Mesh<'a> {
     mesh: &'a MeshInternal,
 }
 
+// TODO why are buffer timelines allowed to outlive mesh timelines?
 impl<'a> Mesh<'a> {
     pub fn buffers(&self) -> (&'a [f32], &'a [f32], &'a [f32], &'a [u32]) {
         let p = unsafe {
@@ -150,9 +152,13 @@ impl Goat {
         Mesh { mesh: &mesh }
     }
     #[allow(dead_code)]
-    pub fn dump(&self) {
+    pub fn dump(&self, filename: String) {
         unsafe {
-            dump_goat(self.hsptr);
+            let bytes : Vec<u8> = filename.into_bytes();
+            let mut cchar : Vec<c_char> = bytes.iter().map(|w| *w as c_char).collect();
+            let slice = cchar.as_mut_slice();
+            let ptr: *mut c_char = slice.as_mut_ptr();
+            dump_goat(self.hsptr, ptr);
         }
     }
 }
